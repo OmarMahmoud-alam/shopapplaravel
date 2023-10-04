@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\api;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
-use Illuminate\Support\Facades\Auth;
-use App\Models\User;
+use Exception;
 use Validator;
+use App\Models\User;
+
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use App\Notifications\EmailVerificationNotificationOtp;
 
 class AuthoUserController extends Controller
 {
@@ -37,12 +39,12 @@ class AuthoUserController extends Controller
         ]);
 
         if($user->save()){
-          //  $tokenResult = $user->createToken('Personal Access Token');
-          //  $token = $tokenResult->plainTextToken;
-
+            $tokenResult = $user->createToken('Personal Access Token');
+            $token = $tokenResult->plainTextToken;
+            $user->notify(new EmailVerificationNotificationOtp);
             return response()->json([
             'message' => 'Successfully created user!',
-          //  'accessToken'=> $token,
+            'accessToken'=> $token,
             ],201);
         }
         else{
@@ -50,7 +52,21 @@ class AuthoUserController extends Controller
         }
     }
 
+    public function resendEmailVerificationOtp(){
+        $user=auth('sanctum')->user();
+try{
+    $user->notify(new EmailVerificationNotificationOtp);
     
+    return response()->json(['message'=>'the otp send again']);
+}
+catch(Exception $e){
+    return response()->json(['message'=>('their an error happened'.$e)]);
+
+}
+      
+
+    }
+
 public function login(Request $request)
 {
     $validator=Validator::make( $request->all(),[

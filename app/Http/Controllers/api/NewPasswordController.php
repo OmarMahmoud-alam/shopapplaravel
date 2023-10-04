@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\User;
+use Exception;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use App\Notifications\resetpasswordotp;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Validation\ValidationException;
@@ -17,9 +20,8 @@ class NewPasswordController extends Controller
     public function forgotPassword(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'email' => 'required|email|exists:users,email',
         ]);
-
         $status = Password::sendResetLink(
             $request->only('email')
         );
@@ -66,6 +68,21 @@ class NewPasswordController extends Controller
             'message'=> __($status)
         ], 500);
 
+    }
+
+    public function forgetpasswordotp(Request $request){
+       try{
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+        $input=$request->only('email');
+        $user=User::where('email',$input)->first();
+        $user->notify(new resetpasswordotp);
+        return response(['message'=> 'otp code send success', 'status'=>200]);
+    }
+    catch(Exception $e){
+        return response()->json(['error'=>$e], 200);
+    }
     }
 
 

@@ -3,6 +3,7 @@
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ResetPasswordOTp;
 use App\Http\Controllers\api\booksController;
 use App\Http\Controllers\Api\RatingController;
 use App\Http\Controllers\api\AuthoUserController;
@@ -50,6 +51,11 @@ Route::get('verify-email/{id}/{hash}', [EmailVerificationController::class, 'ver
 
 Route::post('forgot-password', [NewPasswordController::class, 'forgotPassword']);
 Route::post('reset-password', [NewPasswordController::class, 'reset']);
+Route::get('verify/otp/resend', [AuthoUserController::class, 'resendEmailVerificationOtp'])->middleware('auth:sanctum');
+Route::post('verifiedby/otp', [EmailVerificationController::class, 'email_verificationOtp'])->middleware('auth:sanctum');
+Route::post('forgot-password/otp', [NewPasswordController::class, 'forgetpasswordotp']);
+Route::post('reset-password/otp', [ResetPasswordOTp::class, 'passwordresetotp']);
+
 
 
 
