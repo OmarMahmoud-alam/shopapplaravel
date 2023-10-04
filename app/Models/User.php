@@ -2,15 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\book;
 use App\Models\rating;
 use App\Models\favourite;
+use App\Notifications\ResetPasswordNotification;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -77,5 +80,12 @@ public function favourites(): BelongsToMany
 public function rating(): BelongsToMany
 {
     return $this->belongsToMany(Role::class, 'role_user_table', 'user_id', 'role_id');
+}
+public function sendPasswordResetNotification($token,)
+{
+    $email=$this->email; 
+    $url = 'https://spa.test/reset-password?token=' . $token.'&email='.$email;
+
+    $this->notify(new ResetPasswordNotification($url));
 }
 }

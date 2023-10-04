@@ -1,11 +1,14 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\api\booksController;
 use App\Http\Controllers\Api\RatingController;
 use App\Http\Controllers\api\AuthoUserController;
 use App\Http\Controllers\Api\FavouriteController;
+use App\Http\Controllers\Api\NewPasswordController;
+use App\Http\Controllers\Api\EmailVerificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,6 +44,12 @@ Route::get('favourite',[FavouriteController::class,'show'])->middleware('auth:sa
 Route::delete('favourite/delete',[FavouriteController::class,'destroy'])->middleware('auth:sanctum');
 Route::post('rate',[RatingController::class,'store'])->middleware('auth:sanctum');
 Route::get('rate/{id}',[RatingController::class,'show'])->middleware('auth:sanctum');
+//////
+Route::post('email/verification-notification', [EmailVerificationController::class, 'sendVerificationEmail'])->middleware('auth:sanctum');
+Route::get('verify-email/{id}/{hash}', [EmailVerificationController::class, 'verify'])->name('verification.verify')->middleware('auth:sanctum');
+
+Route::post('forgot-password', [NewPasswordController::class, 'forgotPassword']);
+Route::post('reset-password', [NewPasswordController::class, 'reset']);
 
 
 

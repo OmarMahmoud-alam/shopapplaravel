@@ -13,9 +13,12 @@ class AuthoUserController extends Controller
 {
     public function register(Request $request)
     {
+
+
+
         $validator=Validator::make( $request->all(),[
             'name' => 'required|string',
-            'email'=>'required|string|unique:users',
+            'email'=>'required|string|email',
             'password'=>'required|string',
             'c_password' => 'required|same:password'
         ]);
@@ -34,12 +37,12 @@ class AuthoUserController extends Controller
         ]);
 
         if($user->save()){
-            $tokenResult = $user->createToken('Personal Access Token');
-            $token = $tokenResult->plainTextToken;
+          //  $tokenResult = $user->createToken('Personal Access Token');
+          //  $token = $tokenResult->plainTextToken;
 
             return response()->json([
             'message' => 'Successfully created user!',
-            'accessToken'=> $token,
+          //  'accessToken'=> $token,
             ],201);
         }
         else{
