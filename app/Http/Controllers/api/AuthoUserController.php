@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Notifications\EmailVerificationNotificationOtp;
+use Illuminate\Validation\Rules\Password as RulesPassword;
 
 class AuthoUserController extends Controller
 {
@@ -20,7 +21,7 @@ class AuthoUserController extends Controller
 
         $validator=Validator::make( $request->all(),[
             'name' => 'required|string',
-            'email'=>'required|string|email',
+            'email'=>'required|string|email', RulesPassword::defaults(),
             'password'=>'required|string',
             'c_password' => 'required|same:password'
         ]);

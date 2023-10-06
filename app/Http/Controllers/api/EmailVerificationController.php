@@ -57,6 +57,7 @@ class EmailVerificationController extends Controller
 
     public function sendVerificationEmail(Request $request)
     {
+        
         if ($request->user()->hasVerifiedEmail()) {
             return [
                 'message' => 'Already Verified'
@@ -68,7 +69,7 @@ class EmailVerificationController extends Controller
         return ['status' => 'verification-link-sent'];
     }
 
-    public function verify(EmailVerificationRequest $request)
+    public function verify(Request $request)
     {
         if ($request->user()->hasVerifiedEmail()) {
             return [

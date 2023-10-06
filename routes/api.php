@@ -4,11 +4,13 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ResetPasswordOTp;
+use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\api\booksController;
 use App\Http\Controllers\Api\RatingController;
 use App\Http\Controllers\api\AuthoUserController;
 use App\Http\Controllers\Api\FavouriteController;
 use App\Http\Controllers\Api\NewPasswordController;
+use App\Http\Controllers\Api\chat\mesagechatController;
 use App\Http\Controllers\Api\EmailVerificationController;
 
 /*
@@ -30,7 +32,7 @@ Route::group(['prefix' => 'auth'], function () {
     Route::group(['middleware' => 'auth:sanctum'], function() {
       Route::get('logoutalldevices', [AuthoUserController::class, 'logout']);
       Route::get('logout', [AuthoUserController::class, 'logoutonly']);
-      Route::get('user', [AuthoUserController::class, 'user']);
+      //      
     });
 });
 Route::post('book',[booksController::class,'store'])->middleware('auth:sanctum');
@@ -54,8 +56,16 @@ Route::post('reset-password', [NewPasswordController::class, 'reset']);
 Route::get('verify/otp/resend', [AuthoUserController::class, 'resendEmailVerificationOtp'])->middleware('auth:sanctum');
 Route::post('verifiedby/otp', [EmailVerificationController::class, 'email_verificationOtp'])->middleware('auth:sanctum');
 Route::post('forgot-password/otp', [NewPasswordController::class, 'forgetpasswordotp']);
-Route::post('reset-password/otp', [ResetPasswordOTp::class, 'passwordresetotp']);
 
+Route::group(['middleware' => 'auth:sanctum'], function() {
+  Route::get('getmessage', [mesagechatController::class, 'index']);
+  Route::post('message', [mesagechatController::class, 'store']);
+
+});
+Route::group(['middleware' => 'auth:sanctum'], function() {
+  Route::get('userprofile', [UserController::class, 'userprofile']);
+  Route::get('otheruserprofile', [UserController::class, 'otheruserprofile']);
+});
 
 
 

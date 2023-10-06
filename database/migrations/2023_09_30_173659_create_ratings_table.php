@@ -18,8 +18,8 @@ return new class extends Migration
             $table->tinyInteger('rating'); 
 
             $table->index(['user_id', 'seller_id']);
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');;  
-            $table->foreign('seller_id')->references('id')->on('users')->onDelete('cascade');; 
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');  
+            $table->foreign('seller_id')->references('id')->on('users')->onDelete('cascade'); 
             $table->string('comment')->nullable($value=true);
 
 
