@@ -7,6 +7,7 @@ use auth;
 use App\Models\book;
 use App\Models\User;
 use App\Models\rating;
+use App\Models\Addresse;
 use App\Models\category;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
@@ -67,9 +68,9 @@ class booksController extends Controller
                 "status"=> Rule::in(['pending', 'inactive','active','rejected']),
                 "price"=>"required|numeric",
                 "author"=>"string| max:70",
-                "addresse_id"=>"required|exists:App\Models\Addresse,id",
+                "addresse_id"=>"required|exists:Addresses,id",
                 "discription"=>"string |max:191",
-                "category"=> "required|array|exists:App\Models\category,id",
+                "category"=> "required|array|exists:categories,id",
             ]
         );
        // $user_id=auth::user();

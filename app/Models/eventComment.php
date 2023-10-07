@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class eventComment extends Model
 {
     use HasFactory;
+    protected $table = 'event_comments';
+
     protected $fillable = [
         'user_id',
         'event_id',

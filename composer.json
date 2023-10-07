@@ -8,6 +8,7 @@
         "php": "^8.1",
         "guzzlehttp/guzzle": "^7.2",
         "ichtrojan/laravel-otp": "^1.4",
+        "intervention/image": "^2.7",
         "laravel-notification-channels/onesignal": "^2.5",
         "laravel/fortify": "^1.18",
         "laravel/framework": "^10.10",

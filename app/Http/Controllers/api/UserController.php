@@ -35,10 +35,10 @@ class UserController extends Controller
     }
     public function updateUser(Request $request){
         $validator =Validator::make( $request->all(),[
-            'phone' => 'digits:10',
-            'name' => 'text',
+            'phone' => 'digits:11',
+            'name' => 'string',
             'Darkmode' => 'boolean',
-            'state' => 'text',
+            'state' => 'string',
             'address_id'=>'exists:Addresses,id'
                 
         ]);

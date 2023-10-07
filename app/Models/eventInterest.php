@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class eventInterest extends Model
 {
     use HasFactory;
+    protected $table = 'event_interests';
+
     protected $fillable = [
         'user_id',
         'event_id',

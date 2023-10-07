@@ -6,7 +6,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ResetPasswordOTp;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\api\booksController;
+use App\Http\Controllers\Api\eventController;
 use App\Http\Controllers\Api\RatingController;
+use App\Http\Controllers\Api\addresseController;
 use App\Http\Controllers\api\AuthoUserController;
 use App\Http\Controllers\Api\FavouriteController;
 use App\Http\Controllers\Api\NewPasswordController;
@@ -65,6 +67,20 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
 Route::group(['middleware' => 'auth:sanctum'], function() {
   Route::get('userprofile', [UserController::class, 'userprofile']);
   Route::get('otheruserprofile', [UserController::class, 'otheruserprofile']);
+  Route::post('addresse', [addresseController::class, 'store']);
+  Route::post('updateuser', [UserController::class, 'updateUser']);
+  Route::get('addresse', [addresseController::class, 'show']);
+});
+
+Route::group(['prefix' => 'event'], function () {
+  Route::group(['middleware' => 'auth:sanctum'], function() {
+    Route::get('', [eventController::class, 'showevent']);
+    Route::post('', [eventController::class, 'store']);
+    Route::post('/comment', [eventController::class, 'createcomment']);
+    Route::post('/interest', [eventController::class, 'createeventinterst']);
+    Route::get('comment', [eventController::class, 'showcomment']);
+    Route::get('addresse', [AddresseController::class, 'show']);
+  });
 });
 
 

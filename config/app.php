@@ -160,6 +160,8 @@ return [
          * Package Service Providers...
          */
         Ichtrojan\Otp\OtpServiceProvider::class,
+        Intervention\Image\ImageServiceProvider::class,
+
 
         /*
          * Application Service Providers...
@@ -185,6 +187,7 @@ return [
     'aliases' => Facade::defaultAliases()->merge([
         // 'Example' => App\Facades\Example::class,
         'Otp' => Ichtrojan\Otp\Otp::class,
+        'Image' => Intervention\Image\Facades\Image::class,
 
     ])->toArray(),
 
