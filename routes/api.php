@@ -7,6 +7,7 @@ use App\Http\Controllers\ResetPasswordOTp;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\api\booksController;
 use App\Http\Controllers\Api\eventController;
+use App\Http\Controllers\Api\PhotoController;
 use App\Http\Controllers\Api\RatingController;
 use App\Http\Controllers\Api\addresseController;
 use App\Http\Controllers\api\AuthoUserController;
@@ -37,8 +38,8 @@ Route::group(['prefix' => 'auth'], function () {
       //      
     });
 });
-Route::post('book',[booksController::class,'store'])->middleware('auth:sanctum');
-Route::get('book',[booksController::class,'index']);
+Route::post('book',[booksController::class,'store'])->middleware(['auth:sanctum','verified']);
+Route::get('book',[booksController::class,'index'])->middleware(['auth:sanctum','verified']);
 Route::get('category',[booksController::class,'get_category']);
 Route::delete('book/{id}/delete',[booksController::class,'destroy'])->middleware('auth:sanctum');
 Route::get('book/{id}',[booksController::class,'show'])->middleware('auth:sanctum');
@@ -58,6 +59,7 @@ Route::post('reset-password', [NewPasswordController::class, 'reset']);
 Route::get('verify/otp/resend', [AuthoUserController::class, 'resendEmailVerificationOtp'])->middleware('auth:sanctum');
 Route::post('verifiedby/otp', [EmailVerificationController::class, 'email_verificationOtp'])->middleware('auth:sanctum');
 Route::post('forgot-password/otp', [NewPasswordController::class, 'forgetpasswordotp']);
+Route::post('uploadimage', [PhotoController::class, 'storeimage']);
 
 Route::group(['middleware' => 'auth:sanctum'], function() {
   Route::get('getmessage', [mesagechatController::class, 'index']);
@@ -69,12 +71,14 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
   Route::get('otheruserprofile', [UserController::class, 'otheruserprofile']);
   Route::post('addresse', [addresseController::class, 'store']);
   Route::post('updateuser', [UserController::class, 'updateUser']);
+  Route::post('updateUserimage', [UserController::class, 'updateUserimage']);
   Route::get('addresse', [addresseController::class, 'show']);
 });
 
 Route::group(['prefix' => 'event'], function () {
   Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('', [eventController::class, 'showevent']);
+    Route::get('/all', [eventController::class, 'show']);
     Route::post('', [eventController::class, 'store']);
     Route::post('/comment', [eventController::class, 'createcomment']);
     Route::post('/interest', [eventController::class, 'createeventinterst']);

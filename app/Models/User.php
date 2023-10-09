@@ -5,12 +5,14 @@ namespace App\Models;
 use App\Models\book;
 use App\Models\rating;
 use App\Models\favourite;
-use App\Notifications\messagesentnotification;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Notifications\Notifiable;
+use App\Notifications\messagesentnotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\ResetPasswordNotification;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -114,5 +116,12 @@ public function routeNotificationForOneSignal() : array{
 }
 public function sendNewMessageNotification(array $data) : void {
     $this->notify(new messagesentnotification($data));
+}
+public function photos():MorphOne
+{
+    return $this->MorphOne(photo::class,'photoable');
+}
+public function getprofileimageurlAttribute(){
+    return Storage::disk('imagesfp')->url($this->photos->src);
 }
 }

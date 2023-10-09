@@ -13,18 +13,58 @@ use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Http\Controllers\api\books;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Controllers\Api\PhotoController;
+use App\Traits\ImageProcessing;
 
 class booksController extends Controller
 {
-    public function index(){
+    use ImageProcessing;
+
+    public function index(request $request){
+        /*['photos' => function ($query) {
+            $query->select('src');
+         
+        }]*/
         //$book=book::all();
-        $book = Book::with('categories')->with('addresses')->get();
+        $pageSize = $request->page_size ?? 25;
+        $currentPage = $request->page??1;
+
+        if((!is_numeric($pageSize)) || $pageSize<2||$pageSize>200 )
+        {
+            return response()->json(['error'=>'page_size must be number between 1 and 200'], 200);
+        }
+        if(!is_numeric($currentPage)){
+             return response()->json(['error'=>'currentPage must be number '], 200);
+
+        }
+        $book = Book::with('categories')->with('addresses')->Paginate(
+            $pageSize,
+            ['*'],
+            'page',
+            $currentPage
+        );
+
+       //$book->load('photos');
+       foreach ($book as $key => $onebook) {
+        $onebook['image']=$onebook->getfirsturl();
+    }
+
+      //  $book['image']=$book->photos()->src;
+        Log::info($book);
+   //     $photo=$book->photos->select('src')->first();
+      //  $book['image']=$photo;
         if($book->count()>0){
+            if ($book->hasMorePages()) {
+                $totalPages = $book->lastPage();
+                } else {
+                $totalPages = 1; // or whatever you want to display when there's only one page
+                }
             $data=[
                 'status'=>200,
-                'recordernumber'=>$book->count(),
+                'lastpage'=>$totalPages,
                 'books'=>$book
     
             ];
@@ -63,7 +103,8 @@ class booksController extends Controller
     
     public function store(Request $request){
             $validator=Validator::make( $request->all(),[
-              
+                'image' => 'required|array',
+                'image.*' => 'image|mimes:jpg,jpeg,png,gif,svg,tiff,webp ',
                 "name"=>"required|string| max:191",
                 "status"=> Rule::in(['pending', 'inactive','active','rejected']),
                 "price"=>"required|numeric",
@@ -97,10 +138,20 @@ class booksController extends Controller
         }
         
         if ($book) {
+
+            Log::info('before enter');
+           // Log::info($data);
+           $files = $request->file('image');
+
+           $image= $this->storeimage($book->id,$files );
+
+             Log::info('after enter');
+
                 return  response()->json([
                     'status'=>200,
                     'message'=>'book created right',
-                    'book'=>$book
+                    'book'=>$book,
+                    "image"=> $image
                 ], 200);
             }else{
                 return  response()->json([
@@ -118,7 +169,10 @@ class booksController extends Controller
             $user_id=auth('sanctum')->user()->id;
             $seller_id=$book->user_id;
             $rate = rating::where('user_id',$user_id)->where('seller_id',$seller_id)->first('rating');
+            
             $avgrate = rating::where('seller_id',$id)->avg('rating');
+            Log::info('print');
+           $book['image']=$book->getallurl();
             if($avgrate==null){
                 $avgrate='has no rate';
             }
@@ -233,11 +287,20 @@ class booksController extends Controller
    
     }
     public function filterbook(Request $request){
-      //  $books = book::bookfilterM($books, $request)->paginate(20);     
-        $books=book::query();
-          //  $books = book::where('author', 'LIKE', $request->get('%author%'))->get();
         
-      
+        $books=book::query();
+        
+        $pageSize = $request->page_size ?? 25;
+        $currentPage = $request->page??1;
+
+        if((!is_numeric($pageSize)) || $pageSize<2||$pageSize>200 )
+        {
+            return response()->json(['error'=>'page_size must be number between 1 and 200'], 200);
+        }
+        if(!is_numeric($currentPage)){
+             return response()->json(['error'=>'currentPage must be number '], 200);
+
+        }
         // Filter by author
         $authorFilter = $request->author;
         if ($authorFilter != '') {
@@ -281,11 +344,19 @@ class booksController extends Controller
             });
 
       }
-      $books=$books->with('categories')->with('addresses')->paginate(2);
+      $books=$books->with('categories')->with('addresses')->Paginate(
+        $pageSize,
+        ['*'],
+        'page',
+        $currentPage
+    );
+;
      if($books){
          $data=[
         'status'=>200,
-        'data'=>$books
+        'data'=>$books,
+        'lastpage'=>$books->lastPage(),
+
 
      ];
         return  response()->json($data, 200 );
@@ -293,7 +364,7 @@ class booksController extends Controller
         else{
             $data=[
                 'status'=>404,
-                'message'=>'no books found'
+                'message'=>'no books found',
     
             ];
                 return  response()->json($data, 404 );
@@ -341,4 +412,49 @@ class booksController extends Controller
     {
         return $radians * 180 / pi();
     }
+
+    public function storeimage($book_id,$files )
+    {
+
+        $user=auth('sanctum')->user();
+        info('1' .$book_id);
+       // info('122'.$files);
+        info('122'.gettype($files));
+  
+            if(!$book_id){
+                
+                return   response()->json(["message"=>"please provide book id"],501);
+            }
+
+            foreach ($files as $key => $file) {
+                $path =  $this->saveImageAndThumbnail($file,false);
+
+                $result= $this->bookImages($user,$path,$book_id);
+            }
+
+                return response()->json($result, 200);
+        
+
+    }
+    
+
+    public function bookImages($user,$path,$book_id){
+        $book=book::where('id',$book_id)->first();
+
+        if($user->id!=$book->user_id){
+            return ['mesage'=>"you are not authorized to access this"];
+        }
+         $book->photos()->create([
+            'src'=>$path,
+            'type'=>'photo',
+            
+        ]);
+
+        return ['message'=>'update image success','data'=>$book->photos()->get()];   
+     }
+
+
+
+
+
     }

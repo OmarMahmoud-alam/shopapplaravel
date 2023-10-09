@@ -50,7 +50,7 @@ class mesagechatController extends Controller
         $messages = messagechat::where('chat_id', $chatId)
             ->orderBy('created_at', 'desc')
            // ->latest('created_at')
-            ->simplePaginate(
+            ->Paginate(
                 $pageSize,
                 ['*'],
                 'page',
@@ -59,7 +59,8 @@ class mesagechatController extends Controller
 
         return response()->json([
          'message '=>'succes',
-           'data'=>$messages
+           'data'=>$messages->getCollection(),
+           'total pages'=>$messages->lastPage()
         ], 200);  
   }
 

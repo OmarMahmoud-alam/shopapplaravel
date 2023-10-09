@@ -2,20 +2,24 @@
 
 namespace App\Http\Controllers\Api;
 
+use DB;
 use App\Models\event;
 use App\Models\eventComment;
-use App\Models\eventInterest;
-use DB;
 use Illuminate\Http\Request;
+use App\Models\eventInterest;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
+use App\Traits\ImageProcessing;
 
 class eventController extends Controller
-{
+{    use ImageProcessing;
+
     public function store(Request $request){
         $validator=Validator::make( $request->all(),[
-          
+            'image' => 'required|array',
+            'image.*' => 'image|mimes:jpg,jpeg,png,gif,svg,tiff,webp ',
             "place_link"=>"required|string| max:191",
             "discription"=>"required|string| max:400",
             "name"=>"required|string| max:100",
@@ -46,12 +50,17 @@ class eventController extends Controller
         $data['online']=$request->online ??false;
         $event=event::create($data);
 
+
     
     if ($event) {
+        $files = $request->file('image');
+
+       $image= $this->storeimage($event->id,$files );
             return  response()->json([
                 'status'=>200,
                 'message'=>'event created right',
-                'data'=>$event
+                'data'=>$event,
+                'image'=>$image,
             ], 200);
         }else{
             return  response()->json([
@@ -63,10 +72,32 @@ class eventController extends Controller
 
     }
 
-    public function show(){
-        $events = event :: all()->orderBy('created_at', 'desc') ;
+    public function show(request $request){
+
+        $pageSize = $request->page_size ?? 25;
+        $currentPage = $request->page??1;
+
+        if((!is_numeric($pageSize)) || $pageSize<2||$pageSize>200 )
+        {
+            return response()->json(['error'=>'page_size must be number between 2 and 200'], 200);
+        }
+        if(!is_numeric($currentPage)){
+             return response()->json(['error'=>'currentPage must be number '], 200);
+
+        }
+        $events = event ::orderBy('created_at') ->Paginate(//, 'desc'
+            $pageSize,
+            ['*'],
+            'page',
+            $currentPage
+        ) ;
+        foreach ($events as $key => $oneven) {
+            $oneven['image']=$oneven->getfirsturl();
+        }
         if($events){
-            return response()->json(["status"=>true,"message"=>"All Events","data"=>$events]);
+            return response()->json(["status"=>true,"message"=>"All Events","data"=>$events,
+            'lastpage'=>$events->lastPage(),
+        ]);
         }
         else{
             return response()->json(["status"=>false,"message"=>"No Event Found"]);
@@ -83,7 +114,7 @@ class eventController extends Controller
         return Response()->Json(['error'=>$validator->messages(),'status'=>422], 406);
        // return Response()->Json(['error'=>$validator->errors(),'status'=>422], 406);
     }
-        $pageSize = $request->page_size ?? 15;
+        $pageSize = $request->page_size ?? 25;
         $currentPage = $request->page??1;
 
         if((!is_numeric($pageSize)) || $pageSize<2||$pageSize>200 )
@@ -97,7 +128,7 @@ class eventController extends Controller
         $comment = eventComment::where('event_id', $request->event_id)
             ->orderBy('created_at', 'desc')
            // ->latest('created_at')
-            ->simplePaginate(
+            ->Paginate(
                 $pageSize,
                 ['*'],
                 'page',
@@ -106,7 +137,8 @@ class eventController extends Controller
 
         return response()->json([
          'message '=>'succes',
-           'data'=>$comment
+           'data'=>$comment,
+           'lastpage'=>$comment->lastPage(),
         ], 200);  
  
     }
@@ -196,6 +228,8 @@ class eventController extends Controller
     $events = event::where("id",$request->event_id)->with('eventcomment' )->first();
     $events['interest']=eventInterest::select('type', DB::raw('count(*) as count'))
     ->groupBy('type')->get();
+    $events['image']=$events->getallurl();
+
     if($events){
         return response()->json([
             'message '=>'succes',
@@ -203,5 +237,55 @@ class eventController extends Controller
            ], 200); 
     }
 
+    }
+
+
+    public function storeimage($event_id,$files )
+    {
+
+        $user=auth('sanctum')->user();
+        info('1' .$event_id);
+       // info('122'.$files);
+        info('122'.gettype($files));
+  
+        $event=event::where('id',$event_id)->first();
+        Log::info('after get event');
+        
+        if (!$event) {
+            return['message'=>'error happen in upload event'];
+        }
+        
+            foreach ($files as $key => $file) {
+            $result['mesage']='sucess' ;
+
+                $path =  $this->saveImageAndThumbnail($file,false);
+                $result= $this->eventImages($user,$path,$event_id);
+            }
+         // $path =  $this->saveImageAndThumbnail($request->file('image'),false);
+
+       // $result= $this->eventImages($user,$path,$event_id);
+        return response()->json($result, 200);
+
+    }
+    public function eventImages($user,$path,$event_id){
+        $event=event::where('id',$event_id)->first();
+        Log::info('after get event');
+        
+        if (!$event) {
+            return['message'=>'error happen in uploafd event'];
+        }
+        if($user->id!=$event->user_id){
+            return ['mesage'=>"you are not authorized to access this"];
+        }
+
+      
+         $event->photos()->create([
+            'src'=>$path,
+            'type'=>'photo',
+            
+        ]);
+        Log::info('save done');
+
+        return ['message'=>'update image success','data'=>$event->photos()->get()];
     }
 }

@@ -2,13 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\photo;
 use App\Models\Addresse;
 use App\Models\category;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
+use League\Flysystem\Filesystem;
+use Illuminate\Support\Arr;
 class book extends Model
 {
     use HasFactory;
@@ -62,4 +67,49 @@ class book extends Model
     {
         return $this->belongsToMany(User::class, 'favourites', 'book_id', 'user_id');
     }
+    public function photos()
+    {
+        return $this->morphMany(photo::class,'photoable');
+    }
+  
+
+    public function getbookimagesurlAttribute($src){
+        if (is_object($src)) {
+            Log::info('is array');
+
+            $urls = [];
+            foreach ($src  as $source) {
+            Log::info($source);
+
+                $urls[] = Storage::disk('imagesfp')->url($source);
+            }
+            return $urls;
+        } else {
+            Log::info('not array');
+            Log::info($src);
+            return[ Storage::disk('imagesfp')->url($src)];
+        }
+    }
+    public function getbookfirstsrc(){
+       $src= $this->photos()->first('src');
+        if(!$src){
+            return null;
+        }
+        return $this->photos()->first('src');
+    }
+    public function getfirsturl(){
+        $src=$this->getbookfirstsrc();
+        if(!$src){
+            return null;
+        }
+        return $this->getbookimagesurlAttribute($src['src']);
+    }
+    public function getbookallsrc(){
+      //  Log::info($this->photos()->pluck('photos.src'));
+        return $this->photos()->pluck('photos.src');
+    }
+    public function getallurl(){
+        return $this->getbookimagesurlAttribute($this->getbookallsrc());
+    }
+
 }
