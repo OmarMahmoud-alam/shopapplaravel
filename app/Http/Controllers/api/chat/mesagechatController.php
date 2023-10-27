@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\chat;
+namespace App\Http\Controllers\Api\Chat;
 
 use App\Models\chat;
 use App\Models\User;
@@ -8,9 +8,10 @@ use App\Models\messagechat;
 use Illuminate\Http\Request;
 use App\Events\NewMessageSent;
 use App\Http\Controllers\Controller;
+use Log;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
-class mesagechatController extends Controller
+class MesagechatController extends Controller
 {
     public function index(request $request): JsonResponse
     {
@@ -47,7 +48,7 @@ class mesagechatController extends Controller
         $chatId = $user1.$user2;
        // return response()->json($chatId, 200); 
 
-        $messages = messagechat::where('chat_id', $chatId)
+        $messages = messagechat::where('chat_id', $chatId)->with('user')
             ->orderBy('created_at', 'desc')
            // ->latest('created_at')
             ->Paginate(
@@ -71,8 +72,12 @@ class mesagechatController extends Controller
             'reciever_id' => 'required|exists:users,id',
             'message'=>'required'
         ]);
+        $sender = auth()->user();
+        Log::info("111");
+
         $data['sender_id'] = auth()->user()->id;
         $data['reciever_id'] = $request->reciever_id;
+
         $data['message'] = $request->message;
         if( $data['sender_id']>$data['reciever_id']){
             $user1=$data['sender_id'];
@@ -95,24 +100,32 @@ class mesagechatController extends Controller
          }
         
         $chatMessage = messagechat::create($data);
+        $chatMessage->load('user');
+        Log::info($chatMessage);
 //        broadcast(new MessageSentEvent($chatMessage))->toOthers();
         /// TODO send broadcast event to pusher and send notification to onesignal services
-        $this->sendNotificationToOther($chatMessage);
+        $this->sendNotificationToOther($chatMessage,);
+        Log::info(22);
+
+        Log::info($chatMessage);
 
       return response()->json([
-        'message '=>'succes',
-          'data'=>$chatMessage
-       ], 200);  ;
+        
+        'success' => true,
+        'message' => $chatMessage,
+    ], 200);
     }
 
     /**
      * Send notification to other users
      *
-     * @param ChatMessage $chatMessage
      */
-    private function sendNotificationToOther(messagechat $chatMessage) : void {
+    private function sendNotificationToOther(messagechat $chatMessage,) : void {
 
         // TODO move this event broadcast to observer
+        Log::info('chat.' . $chatMessage->chatid);
+
+        Log::info($chatMessage->chat_id);
         broadcast(new NewMessageSent($chatMessage))->toOthers();
 
         $user = auth()->user();
@@ -124,13 +137,14 @@ class mesagechatController extends Controller
             }])
             ->first();*/
             $receiver=User::where('id',$chatMessage->reciever_id)->first();
-            $receiver->sendNewMessageNotification([
+            Log::info("hahah".$receiver);
+         /*   $receiver->sendNewMessageNotification([
                 'messageData'=>[
-                    'senderName'=>$user->username,
+                    'senderName'=>$receiver->name,
                     'message'=>$chatMessage->message,
                     'chatId'=>$chatMessage->chat_id
                 ]
-            ]);
+            ]);*/
     
 
     }

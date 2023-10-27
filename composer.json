@@ -10,7 +10,6 @@
         "ichtrojan/laravel-otp": "^1.4",
         "intervention/image": "^2.7",
         "laravel-notification-channels/onesignal": "^2.5",
-        "laravel/fortify": "^1.18",
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
@@ -29,7 +28,8 @@
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
+            "App\\Seeders\\": "database/seeders/"
+
         }
     },
     "autoload-dev": {

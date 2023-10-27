@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Api;
 use App\Model;
 
+use App\Models\book;
 use App\Models\User;
 use App\Models\rating;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validate;
+
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
@@ -21,12 +22,10 @@ class UserController extends Controller
        // return response()->json($data, 200);
        $avgrate = rating::where('seller_id',$request->user_id)->avg('rating');
        //$book['photo']=url(Storage::url($filename));
-        if($avgrate==null){
-            $avgrate='has no rate';
-        }
+      
         $user['avergerate']=$avgrate;
        // $user['image']=url(Storage::url('imagesfp'.$user->photos->src));
-        $user['image']=$user->getprofileimageurlAttribute();
+        $user['image']=$user->getprofileimage();
         return response()->json($user);
 
     }
@@ -35,27 +34,36 @@ class UserController extends Controller
         $validator =Validator::make( $request->all(),[
             'user_id' => 'required|exists:users,id',
         ]);
+        $vistitor=auth('sanctum')->user();//->with('photos');
+
         if($validator->fails()){
             return Response()->Json(['error'=>$validator->messages(),'status'=>422], 406);
            // return Response()->Json(['error'=>$validator->errors(),'status'=>422], 406);
         }
         $user=User::where('id',$request->user_id)->with('books') ->first();
-
+        
+        foreach ($user['books'] as $key => $onebook) {
+            $onebook['image']=$onebook->getfirsturl();
+           }
+        
         
 
-        $rate = rating::where('user_id',$user->id)->where('seller_id',$request->user_id)->first('rating');
+        $rate = rating::where('user_id',$vistitor->id)->where('seller_id',$request->user_id)->first("rating");
         $avgrate = rating::where('seller_id',$request->user_id)->avg('rating');
+        $user['numberofrating'] = rating::where('seller_id',$request->user_id)->count();
+        $user['booksnumber'] = book::where('user_id',$request->user_id)->count();
+
        //$book['photo']=url(Storage::url($filename));
-        if($avgrate==null){
-            $avgrate='has no rate';
-        }
-        if($rate==null){
-            $rate['rating']='not rate';
-        }
-       
-        $user['myrate']=$rate['rating'];
+       if($rate==null){
+        $user['myrate']=null;
+       }
+       else{
+        $user['myrate']=$rate["rating"];
+
+       }
+
         $user['avergerate']=$avgrate;
-        $user['image']=$user->getprofileimageurlAttribute();
+        $user['image']=$user->getprofileimage();
             
 
 
@@ -71,18 +79,23 @@ class UserController extends Controller
             'state' => 'string',
             'address_id'=>'exists:Addresses,id'
                 
-        ]);
-        if($validator->fails()){
-            return Response()->Json(['error'=>$validator->messages(),'status'=>422], 406);
+         ]);
+         Log::info($request);
+     
+         Log::info(gettype($request->Darkmode));
+            if($validator->fails()){
+            return Response()->Json(['error'=>$validator->messages(),'status'=>422], 200);
            // return Response()->Json(['error'=>$validator->errors(),'status'=>422], 406);
-        }
-        $user=auth('sanctum')->user();
-        if($request->phone){$user->phone=$request->phone;}
-        if($request->name){$user->name=$request->name;}
-        if($request->Darkmode){$user->Darkmode=$request->Darkmode;}
-        if($request->state){$user->state=$request->state;}
-        $user->save();
-        return response()->json(['message'=>'update data success','data'=>$user], 200);
+         }
+         $user=auth('sanctum')->user();
+         if($request->phone){$user->phone=$request->phone;}
+            if($request->name){$user->name=$request->name;}
+         if($request->Darkmode!==null){
+            Log::info('enter darkmode');
+            $user->darkmode=$request->Darkmode;}
+         if($request->state){$user->state=$request->state;}
+         $user->save();
+         return response()->json(['message'=>'update data success','data'=>$user], 200);
 
     }
     

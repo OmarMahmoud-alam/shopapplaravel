@@ -21,11 +21,11 @@ class RatingController extends Controller
         $rating = $request->rating;
 
      if($validator->fails()){
-        return Response()->Json(['error'=>$validator->messages(),'status'=>422], 406);
+        return Response()->Json(['error'=>$validator->messages(),'status'=>422], 200);
        // return Response()->Json(['error'=>$validator->errors(),'status'=>422], 406);
      }
      if($user_id==$request->seller_id){
-        return Response()->Json(['error'=>'can\'t rating your stupid','status'=>422], 406);
+        return Response()->Json(['error'=>'can\'t rating yourself norm','status'=>422], 200);
        // return Response()->Json(['error'=>$validator->errors(),'status'=>422], 406);
       }
       else{

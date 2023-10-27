@@ -60,6 +60,10 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(book::class, 'user_id', 'id');
     }
+    public function bookswithimage(): HasMany
+    {
+        return $this->books->with('getfirsturl');
+    }
     public function putratings()
 {
     return $this->hasMany(rating::class);
@@ -121,7 +125,37 @@ public function photos():MorphOne
 {
     return $this->MorphOne(photo::class,'photoable');
 }
+/*
 public function getprofileimageurlAttribute(){
-    return Storage::disk('imagesfp')->url($this->photos->src);
+    if($this->photos !=null){
+        return Storage::disk('imagesfp')->url($this->photos->src);
+
+    }
+    else{
+        return null;
+    }
 }
+
+*/
+
+
+
+public function getuserimagesrc(){
+   $src= $this->photos()->first('src');
+    if(!$src){
+        return null;
+    }
+    return $this->photos()->first('src');
+}
+public function getprofileimage(){
+    $src=$this->getuserimagesrc();
+    if(!$src){
+        return null;
+    }
+    $result=Storage::disk('imagesfp')->url($src['src']);
+    return $result;
+}
+
+
+
 }

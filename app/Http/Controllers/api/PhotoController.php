@@ -36,8 +36,8 @@ class PhotoController extends Controller
         info('1');
         $loadtype=$request->loadtype;
         $files = $request->file('image');
-        info('122'.$files);
-        info('122'.gettype($files));
+        //info('122'.$files);
+       // info('122'.gettype($files));
        // $fileName = $request->images[0]->getClientOriginalName();
       //  $print=$request->file('image');
 
@@ -114,9 +114,19 @@ class PhotoController extends Controller
         if($user->photos){
             //delete old photo from storage and database
         $this->deleteImage($user->photos->src);
-           $user->photos= $path ;
+        Log::info(5555555555);
+
+        Log::info($user->photos->src);
+        $user->photos->src= $path ;
+        $user->photos()->update(['src'=>$path]) ;
+      //  $user->photo->save();
+        Log::info(3333333333);
+
+        Log::info($user->photos->src);
         }
        else {
+        Log::info("44");
+        Log::info($path);
         $user->photos()->create([
             'src'=>$path,
             'type'=>'photo',

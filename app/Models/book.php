@@ -75,18 +75,15 @@ class book extends Model
 
     public function getbookimagesurlAttribute($src){
         if (is_object($src)) {
-            Log::info('is array');
 
             $urls = [];
             foreach ($src  as $source) {
-            Log::info($source);
 
                 $urls[] = Storage::disk('imagesfp')->url($source);
             }
             return $urls;
         } else {
-            Log::info('not array');
-            Log::info($src);
+
             return[ Storage::disk('imagesfp')->url($src)];
         }
     }

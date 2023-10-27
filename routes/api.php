@@ -1,19 +1,20 @@
 <?php
 
+use App\Http\Controllers\Api\Chat\Chatcontroller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ResetPasswordOTp;
 use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\api\booksController;
-use App\Http\Controllers\Api\eventController;
+use App\Http\Controllers\Api\BooksController;
+use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\PhotoController;
 use App\Http\Controllers\Api\RatingController;
-use App\Http\Controllers\Api\addresseController;
-use App\Http\Controllers\api\AuthoUserController;
+use App\Http\Controllers\Api\AddresseController;
+use App\Http\Controllers\Api\AuthoUserController;
 use App\Http\Controllers\Api\FavouriteController;
 use App\Http\Controllers\Api\NewPasswordController;
-use App\Http\Controllers\Api\chat\mesagechatController;
+use App\Http\Controllers\Api\Chat\MesagechatController;
 use App\Http\Controllers\Api\EmailVerificationController;
 
 /*
@@ -27,6 +28,7 @@ use App\Http\Controllers\Api\EmailVerificationController;
 |
 */
 
+Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
 Route::group(['prefix' => 'auth'], function () {
     Route::post('login', [AuthoUserController::class, 'login']);
@@ -38,13 +40,13 @@ Route::group(['prefix' => 'auth'], function () {
       //      
     });
 });
-Route::post('book',[booksController::class,'store'])->middleware(['auth:sanctum','verified']);
-Route::get('book',[booksController::class,'index'])->middleware(['auth:sanctum','verified']);
-Route::get('category',[booksController::class,'get_category']);
-Route::delete('book/{id}/delete',[booksController::class,'destroy'])->middleware('auth:sanctum');
-Route::get('book/{id}',[booksController::class,'show'])->middleware('auth:sanctum');
-Route::get('usersbook/{id}',[booksController::class,'userproduct'])->middleware('auth:sanctum');
-Route::get('books/filter',[booksController::class,'filterbook'])->middleware('auth:sanctum');
+Route::post('book',[BooksController::class,'store'])->middleware(['auth:sanctum','verified']);
+Route::get('book',[BooksController::class,'index'])->middleware(['auth:sanctum','verified']);
+Route::get('category',[BooksController::class,'get_category']);
+Route::delete('book/{id}/delete',[BooksController::class,'destroy'])->middleware('auth:sanctum');
+Route::get('book/{id}',[BooksController::class,'show'])->middleware('auth:sanctum');
+Route::get('usersbook/{id}',[BooksController::class,'userproduct'])->middleware('auth:sanctum');
+Route::get('books/filter',[BooksController::class,'filterbook'])->middleware('auth:sanctum');
 Route::post('favourite',[FavouriteController::class,'store'])->middleware('auth:sanctum');
 Route::get('favourite',[FavouriteController::class,'show'])->middleware('auth:sanctum');
 Route::delete('favourite/delete',[FavouriteController::class,'destroy'])->middleware('auth:sanctum');
@@ -52,7 +54,7 @@ Route::post('rate',[RatingController::class,'store'])->middleware('auth:sanctum'
 Route::get('rate/{id}',[RatingController::class,'show'])->middleware('auth:sanctum');
 //////
 Route::post('email/verification-notification', [EmailVerificationController::class, 'sendVerificationEmail'])->middleware('auth:sanctum');
-Route::get('verify-email/{id}/{hash}', [EmailVerificationController::class, 'verify'])->name('verification.verify')->middleware('auth:sanctum');
+Route::get('verify-email/{id}/{hash}', [EmailVerificationController::class, 'verify'])->name('verificatio.verify')->middleware('auth:sanctum');
 
 Route::post('forgot-password', [NewPasswordController::class, 'forgotPassword']);
 Route::post('reset-password', [NewPasswordController::class, 'reset']);
@@ -62,27 +64,29 @@ Route::post('forgot-password/otp', [NewPasswordController::class, 'forgetpasswor
 Route::post('uploadimage', [PhotoController::class, 'storeimage']);
 
 Route::group(['middleware' => 'auth:sanctum'], function() {
-  Route::get('getmessage', [mesagechatController::class, 'index']);
-  Route::post('message', [mesagechatController::class, 'store']);
+  Route::get('getchats', [Chatcontroller::class, 'index']);
+
+  Route::get('getmessage', [MesagechatController::class, 'index']);
+  Route::post('message', [MesagechatController::class, 'store']);
 
 });
 Route::group(['middleware' => 'auth:sanctum'], function() {
   Route::get('userprofile', [UserController::class, 'userprofile']);
   Route::get('otheruserprofile', [UserController::class, 'otheruserprofile']);
-  Route::post('addresse', [addresseController::class, 'store']);
+  Route::post('addresse', [AddresseController::class, 'store']);
   Route::post('updateuser', [UserController::class, 'updateUser']);
   Route::post('updateUserimage', [UserController::class, 'updateUserimage']);
-  Route::get('addresse', [addresseController::class, 'show']);
+  Route::get('addresse', [AddresseController::class, 'show']);
 });
 
 Route::group(['prefix' => 'event'], function () {
   Route::group(['middleware' => 'auth:sanctum'], function() {
-    Route::get('', [eventController::class, 'showevent']);
-    Route::get('/all', [eventController::class, 'show']);
-    Route::post('', [eventController::class, 'store']);
-    Route::post('/comment', [eventController::class, 'createcomment']);
-    Route::post('/interest', [eventController::class, 'createeventinterst']);
-    Route::get('comment', [eventController::class, 'showcomment']);
+    Route::get('', [EventController::class, 'showevent']);
+    Route::get('/all', [EventController::class, 'show']);
+    Route::post('', [EventController::class, 'store']);
+    Route::post('/comment', [EventController::class, 'createcomment']);
+    Route::post('/interest', [EventController::class, 'createeventinterst']);
+    Route::get('comment', [EventController::class, 'showcomment']);
     Route::get('addresse', [AddresseController::class, 'show']);
   });
 });

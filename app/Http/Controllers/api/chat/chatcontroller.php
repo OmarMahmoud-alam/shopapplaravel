@@ -1,15 +1,46 @@
 <?php
 
-namespace App\Http\Controllers\Api\chat;
+namespace App\Http\Controllers\Api\Chat;
 
-use App\Models\messagechat;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
+
 use App\Http\Controllers\Controller;
+use App\Models\chat;
+use App\Models\messagechat;
 
-class chatcontroller extends Controller
+class Chatcontroller extends Controller
 {
 
+    //select('user2_id')->
+    public function index(){
+        $user=auth('sanctum')->user();
+        $chat['1']=chat::select('id','user2_id')->where('user1_id',$user->id)->with('users2')->get();
+       $chat['2']=chat::select('id','user1_id')->where('user2_id',$user->id)->with('users1')->get();
+       
+       foreach ($chat['1'] as $key => $oneuser) {
+        $oneuser['lastmessage']= messagechat::where('chat_id',$oneuser->id)->latest('created_at')->simplePaginate(
+            1,
+            ['*'],
+            'page',
+            1
+        )->getCollection();
+        $oneuser["users2"]['image']=$oneuser["users2"]->photos()->first(['src']);;
+       }
+       foreach ($chat['2'] as $key => $oneuser) {
+        $oneuser['lastmessage']= messagechat::where('chat_id',$oneuser->id)->latest('created_at')->simplePaginate(
+            1,
+            ['*'],
+            'page',
+            1
+        )->getCollection();
+        $oneuser["users1"]['image']=$oneuser["users1"]->photos()->first(['src']);;
+       }
+        return response()->json([
+              'data'=>$chat,
+              'status'=>'200'
+        ], 200);
+
+
+    }
 /*
     public function index(request $request): JsonResponse
     {

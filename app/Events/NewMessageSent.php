@@ -10,6 +10,7 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Log;
 
 class NewMessageSent implements ShouldBroadcastNow
 {
@@ -29,14 +30,13 @@ class NewMessageSent implements ShouldBroadcastNow
      *
      * @return array<int, \Illuminate\Broadcasting\Channel>
      */
-    public function broadcastOn(): array
+    public function broadcastOn()
     {
-        return [
-            new PrivateChannel('chat'.$this->message->chat_id),
-        ];
+        Log::info(22222 . 'chat.' . $this->message->chat_id);
+        return new PrivateChannel('chat.' . $this->message->chat_id) ;
     }
     public function  broadcastAs(){
-        return 'message sent';
+        return 'message.sent';
     }
     public function broadcastWith(): array
     {

@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 
-class addresseController extends Controller
+class AddresseController extends Controller
 {
     public function store(Request $request){
         $validator=Validator::make( $request->all(),[
@@ -35,14 +35,14 @@ class addresseController extends Controller
     if ($addresse) {
             return  response()->json([
                 'status'=>200,
-                'message'=>'Addresse created right',
+                'message'=>'Success',
                 'data'=>$addresse
             ], 200);
         }else{
             return  response()->json([
                 'status'=>404,
                 'message'=>'their is an error happened',
-            ], 404);
+            ], 200);
         }
     }
 

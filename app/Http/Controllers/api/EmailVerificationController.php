@@ -7,7 +7,7 @@ use Ichtrojan\Otp\Otp;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Events\Verified;
-use App\Http\Requests\Auth\EmailVerificationRequest;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 
@@ -28,13 +28,17 @@ class EmailVerificationController extends Controller
             'message'=> "can't verfiy",
             'result'=>0,
                 'error'=>$validator->errors(),
-        ],403);
+        ],200);
         }
-
+        Log::info($request->email);
+        Log::info($request->otp);
     $otpVal=$this->otp->validate($request->email,$request->otp);
-    if(!$otpVal->status){
+    Log::info($otpVal->status);
 
-        return response()->json(['error'=> $otpVal], 401);
+    if(!$otpVal->status){
+    Log::info("50000");
+
+        return response()->json(['error'=> $otpVal], 200);
     
     }
     $user=User::where('email',$request->email)->first();
@@ -44,7 +48,7 @@ class EmailVerificationController extends Controller
 
         if ($request->user()->markEmailAsVerified()) {
             event(new Verified($request->user()));
-    return response()->json(['message'=>'the email is verified'], 200);
+    return response()->json(['code'=>1,'message'=>'the email is verified','status'=>'200'], 200);
 
         }
 

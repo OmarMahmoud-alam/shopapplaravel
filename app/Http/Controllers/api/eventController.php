@@ -13,7 +13,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use App\Traits\ImageProcessing;
 
-class eventController extends Controller
+class EventController extends Controller
 {    use ImageProcessing;
 
     public function store(Request $request){

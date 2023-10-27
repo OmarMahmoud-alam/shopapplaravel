@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use auth;
+use Illuminate\Support\Facades\Log;
 use sanctum;
 use App\Models\book;
 use App\Models\favourite;
@@ -49,7 +50,7 @@ class FavouriteController extends Controller
         $user_id=auth('sanctum')->user()->id;
 
         if($validator->fails()){
-            return Response()->Json(['error'=>$validator->messages(),'status'=>422], 406);
+            return Response()->Json(['error'=>$validator->messages(),'status'=>422], 200);
            // return Response()->Json(['error'=>$validator->errors(),'status'=>422], 406);
         }
         
@@ -59,8 +60,8 @@ class FavouriteController extends Controller
                 return  response()->json([
                     'status'=>400,
                 //    '$addedbefore'=>$addedbefore,
-                    'message'=>'the book is added to favourite before',
-                ], 400);
+                    'error'=>'the book is added to favourite before',
+                ], 200);
             }
             $book=favourite::create([
                 'user_id'=>$user_id,
@@ -78,7 +79,7 @@ class FavouriteController extends Controller
                 return  response()->json([
                     'status'=>404,
                     'message'=>'their is an error happened',
-                ], 404);
+                ], 200);
                }
          }
     
@@ -90,21 +91,25 @@ class FavouriteController extends Controller
         "book_id"=>"required|exists:App\Models\book,id",
            ]
        );
+       Log::info("eneter destroy");
       // $user_id=auth::user();
        $user_id=auth('sanctum')->user()->id;
        if($validator->fails()){
-           return Response()->Json(['error'=>$validator->messages(),'status'=>422], 406);
+           return Response()->Json(['error'=>$validator->messages(),'status'=>422], 200);
           // return Response()->Json(['error'=>$validator->errors(),'status'=>422], 406);
        }
+       Log::info("eneter destroy11");
 
     $book =  favourite::where('user_id',$user_id,)->where('book_id',$request->book_id)->get();
+    Log::info(count($book));
     
-    if(count($book)){
+    if(count($book)>0){
         if($book[0]->user_id != $user_id ){
         
-            return  response()->json(['message' => 'This user doesn\'t have the permison to do that  ','status'=>'403'],403 );
+            return  response()->json(['error' => 'This user doesn\'t have the permison to do that  ','status'=>'403'],200 );
         }
 
+        Log::info("eneter destroy33333");
        
        $books=  favourite::where('user_id',$user_id,)->where('book_id',$request->book_id) ->delete();
         return response()->json([
@@ -116,7 +121,7 @@ class FavouriteController extends Controller
     }
     else{
         return   response()->json([ 'status'=>404
-        ,'message'=>'No book found'],404);
+        ,'error'=>'No book found in favourite'],200);
     }
 }
 //

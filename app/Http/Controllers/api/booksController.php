@@ -1,25 +1,23 @@
 <?php
 
-namespace App\Http\Controllers\api;
+namespace App\Http\Controllers\Api;
 
+use App\Models\favourite;
+use Exception;
 use in;
 use auth;
 use App\Models\book;
 use App\Models\User;
 use App\Models\rating;
-use App\Models\Addresse;
 use App\Models\category;
-use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use App\Http\Controllers\api\books;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Controllers\Api\PhotoController;
 use App\Traits\ImageProcessing;
 
-class booksController extends Controller
+class BooksController extends Controller
 {
     use ImageProcessing;
 
@@ -29,6 +27,7 @@ class booksController extends Controller
          
         }]*/
         //$book=book::all();
+        Log::info('try to get  books');
         $pageSize = $request->page_size ?? 25;
         $currentPage = $request->page??1;
 
@@ -40,7 +39,7 @@ class booksController extends Controller
              return response()->json(['error'=>'currentPage must be number '], 200);
 
         }
-        $book = Book::with('categories')->with('addresses')->Paginate(
+        $book = Book::with('categories')->with('addresses')->with('users:id,name,email')->Paginate(
             $pageSize,
             ['*'],
             'page',
@@ -50,7 +49,7 @@ class booksController extends Controller
        //$book->load('photos');
        foreach ($book as $key => $onebook) {
         $onebook['image']=$onebook->getfirsturl();
-    }
+       }
 
       //  $book['image']=$book->photos()->src;
         Log::info($book);
@@ -76,7 +75,7 @@ class booksController extends Controller
                 'status'=>404,
                 'message'=>'no record found'
             ];
-            return  response()->json($data, 402, );
+            return  response()->json($data, 200 );
         }
         }
     public function get_category(){
@@ -96,7 +95,7 @@ class booksController extends Controller
                     'status'=>404,
                     'message'=>'no record found'
                 ];
-                return  response()->json($data, 402, );
+                return  response()->json($data, 200, );
             }
             }
        // "required|string :pending,active,inactive,rejected | max:191"
@@ -106,22 +105,29 @@ class booksController extends Controller
                 'image' => 'required|array',
                 'image.*' => 'image|mimes:jpg,jpeg,png,gif,svg,tiff,webp ',
                 "name"=>"required|string| max:191",
-                "status"=> Rule::in(['pending', 'inactive','active','rejected']),
+                "status"=> Rule::in(['جديد', 'مستعمل بحاله جيد','مستعمل بحاله متوسط','فاقد بعض الورق','بحالة سئ']),
                 "price"=>"required|numeric",
                 "author"=>"string| max:70",
                 "addresse_id"=>"required|exists:Addresses,id",
                 "discription"=>"string |max:191",
                 "category"=> "required|array|exists:categories,id",
             ]
+
         );
        // $user_id=auth::user();
         $user_id=auth('sanctum')->user()->id;
+         Log::info(gettype($request->category));
+         Log::info(($request->category));
+         Log::info(gettype($request->image));
+         Log::info(($request->image));
 
         if($validator->fails()){
-            return Response()->Json(['error'=>$validator->messages(),'status'=>422], 406);
+            Log::info($validator->messages());
+            return Response()->Json(['error'=>$validator->messages(),'status'=>422], 200);
            // return Response()->Json(['error'=>$validator->errors(),'status'=>422], 406);
         }
         else{
+            try{
             $book=book::create([
                 'user_id'=>$user_id,
                 'name'=>$request->name,
@@ -131,7 +137,10 @@ class booksController extends Controller
                 'addresse_id'=>$request->addresse_id,
                 'discription'=>$request->discription,
             ]);
-
+        }
+        catch(Exception $e){
+            Log::info($e);
+        }
 
         if ($request->has('category')) {
             $book->categories()->sync($request->category);
@@ -166,6 +175,8 @@ class booksController extends Controller
     public function show($id){
             
             $book = book::with('categories')->with('addresses')->with('users')->find($id);
+            $book["users"]['image'] =$book->users->getprofileimage();
+           // $book->users->load('getprofileimageurlAttribute');
             $user_id=auth('sanctum')->user()->id;
             $seller_id=$book->user_id;
             $rate = rating::where('user_id',$user_id)->where('seller_id',$seller_id)->first('rating');
@@ -181,6 +192,8 @@ class booksController extends Controller
             }
            
             $book['users']['myrate']=$rate['rating'];
+            $book['favourite']=favourite::where('user_id',$user_id)->where('book_id',$id)->first()!=null ;
+            Log::info($book['favourite']);
             $book['users']['avergerate']=$avgrate;
                 
             

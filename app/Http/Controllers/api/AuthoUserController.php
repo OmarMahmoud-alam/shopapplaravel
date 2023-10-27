@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\api;
+namespace App\Http\Controllers\Api;
 
 use Exception;
 use Validator;
@@ -21,17 +21,16 @@ class AuthoUserController extends Controller
 
         $validator=Validator::make( $request->all(),[
             'name' => 'required|string',
-            'email'=>'required|string|email', RulesPassword::defaults(),
+            'email'=>'required|string|unique:users,email|email', RulesPassword::defaults(),
             'password'=>'required|string',
             'c_password' => 'required|same:password'
         ]);
         if ($validator->fails()) {
-            return response()->json(['status'=> "403",
+            return response()->json(['status'=> "422",
             'message'=> "can't register",
                 'error'=>$validator->errors(),
-        ],403);
+        ],200);
         }
-
 
         $user = new User([
             'name'  => $request->name,
@@ -58,7 +57,7 @@ class AuthoUserController extends Controller
 try{
     $user->notify(new EmailVerificationNotificationOtp);
     
-    return response()->json(['message'=>'the otp send again']);
+    return response()->json(['message'=>'the otp send again','code'=>1]);
 }
 catch(Exception $e){
     return response()->json(['message'=>('their an error happened'.$e)]);
@@ -80,7 +79,7 @@ public function login(Request $request)
         return response()->json(['status'=> "403",
         'message'=> "validation error",
             'error'=>$validator->errors(),
-    ],403);
+    ],200);
     }
 
 if(!Auth::attempt($request->only(['email' , 'password' ]))){
@@ -90,7 +89,7 @@ if(!Auth::attempt($request->only(['email' , 'password' ]))){
         'message'=> "the email or the password is wrong",
            
     ]
-    , 401);
+    , 200);
 
 }
 
@@ -99,16 +98,19 @@ if(!Auth::attempt($request->only(['email' , 'password' ]))){
     {
     return response()->json([
         'message' => 'Unauthorized'
-    ],401);
+    ],200);
     }
 
     $user = $request->user();
+    $user_verify =$user->email_verified_at;
     $tokenResult = $user->createToken('Personal Access Token');
     $token = $tokenResult->plainTextToken;
 
     return response()->json([
     'accessToken' =>$token,
+    'verify_at'=>$user_verify,
     'token_type' => 'Bearer',
+    'message' => 'success',
     ]);
 }
 public function user(Request $request)

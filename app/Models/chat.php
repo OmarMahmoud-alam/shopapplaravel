@@ -25,10 +25,22 @@ class chat extends Model
     {
         return $this->hasMany(messagechat::class, 'chat_id');
     }
-
-    public function lastMessage(): HasOne
+    public function users1(): HasOne
     {
-        return $this->hasOne(messagechat::class, 'chat_id')->latest('updated_at');
+        return $this->hasOne(user::class, 'id','user1_id');
+    }
+    public function users2(): HasOne
+    {
+        return $this->hasOne(user::class, 'id','user2_id');
+    }
+    public function lastMessage(): HasMany
+    {
+      /*  return $this->hasMany(messagechat::class,'chat_id','id')->latest('created_at')->simplePaginate(
+            1,
+            ['*'],
+            'page',
+            1
+        );*/
     }
 
 
