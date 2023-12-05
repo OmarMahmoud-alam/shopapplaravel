@@ -1,0 +1,11 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.tech.Kotobie",
+      "sha256_cert_fingerprints":
+        ["53:75:B7:8D:2F:9E:F4:07:71:D4:95:5A:61:2B:09:03:15:25:DE:AE:9E:2C:1A:54:A5:F2:D0:C0:E1:E0:8F:97"]
+    }
+  }
+]

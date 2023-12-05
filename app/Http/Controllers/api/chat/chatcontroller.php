@@ -23,7 +23,15 @@ class Chatcontroller extends Controller
             'page',
             1
         )->getCollection();
-        $oneuser["users2"]['image']=$oneuser["users2"]->photos()->first(['src']);;
+        $temp=$oneuser["users2"]->photos()->first(['src'])['src'];
+        if($temp!=null){
+            $oneuser["users2"]['image']='https://usedbookshop.c1.is/imagesfp/'.$temp;
+
+        }
+        else{
+            $oneuser["users2"]['image']=null;
+
+        }
        }
        foreach ($chat['2'] as $key => $oneuser) {
         $oneuser['lastmessage']= messagechat::where('chat_id',$oneuser->id)->latest('created_at')->simplePaginate(
@@ -32,8 +40,15 @@ class Chatcontroller extends Controller
             'page',
             1
         )->getCollection();
-        $oneuser["users1"]['image']=$oneuser["users1"]->photos()->first(['src']);;
-       }
+        $temp=$oneuser["users1"]->photos()->first(['src'])['src'];
+        if($temp!=null){
+            $oneuser["users1"]['image']='https://usedbookshop.c1.is/imagesfp/'.$temp;
+
+        }
+        else{
+            $oneuser["users1"]['image']=null;
+
+        }       }
         return response()->json([
               'data'=>$chat,
               'status'=>'200'

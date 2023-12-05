@@ -29,7 +29,7 @@ trait ImageProcessing{
 
         $str_random = Str::random(8);
         $imgpath = $str_random.time().$extension;
-        $img->save(storage_path('app/imagesfp').'/'.$imgpath);
+        $img->save(storage_path('../public_html/imagesfp').'/'.$imgpath);
 
         return $imgpath;
     }
@@ -43,7 +43,7 @@ trait ImageProcessing{
         });
   
         $imgpath = $str_random.time().$extension;
-        $img->save(storage_path('app/imagesfp').'/'.$imgpath);
+        $img->save(storage_path('public_html/imagesfp').'/'.$imgpath);
       
         return $imgpath;
   

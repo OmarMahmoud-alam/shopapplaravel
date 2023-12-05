@@ -88,7 +88,7 @@ class FavouriteController extends Controller
  //
  public function destroy(Request $request){
     $validator=Validator::make( $request->all(),[
-        "book_id"=>"required|exists:App\Models\book,id",
+        "book_id"=>"required|exists:books,id",
            ]
        );
        Log::info("eneter destroy");

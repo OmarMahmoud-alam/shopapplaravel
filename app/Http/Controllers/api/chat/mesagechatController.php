@@ -45,8 +45,9 @@ class MesagechatController extends Controller
 
 
 
-        $chatId = $user1.$user2;
+        $chatId = $user1_id.$user2_id;
        // return response()->json($chatId, 200); 
+            Log::info("1111");
 
         $messages = messagechat::where('chat_id', $chatId)->with('user')
             ->orderBy('created_at', 'desc')
@@ -57,7 +58,7 @@ class MesagechatController extends Controller
                 'page',
                 $currentPage
             );
-
+           // Log::info($messages->getCollection());
         return response()->json([
          'message '=>'succes',
            'data'=>$messages->getCollection(),
@@ -92,7 +93,9 @@ class MesagechatController extends Controller
         }
         $chat=chat::where('user1_id',$user1)->where('user2_id',$user2)->first();
         if(!$chat){
+            
         $chatMessage = chat::create([
+            'id'=> $data['chat_id'],
             'user1_id'=>$user1,
             'user2_id'=>$user2
         ]);

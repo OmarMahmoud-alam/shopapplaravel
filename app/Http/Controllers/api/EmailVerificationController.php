@@ -36,7 +36,6 @@ class EmailVerificationController extends Controller
     Log::info($otpVal->status);
 
     if(!$otpVal->status){
-    Log::info("50000");
 
         return response()->json(['error'=> $otpVal], 200);
     

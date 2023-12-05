@@ -16,7 +16,8 @@ use Illuminate\Validation\Rules\Password as RulesPassword;
 
 class NewPasswordController extends Controller
 {
-    
+    private $otp;
+
     public function forgotPassword(Request $request)
     {
         $request->validate([
@@ -42,7 +43,7 @@ class NewPasswordController extends Controller
         $request->validate([
             'token' => 'required',
             'email' => 'required|email',
-            'password' => ['required', 'confirmed', RulesPassword::defaults()],
+            'password' => ['required', RulesPassword::defaults()],
         ]);
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
@@ -69,11 +70,50 @@ class NewPasswordController extends Controller
         ], 500);
 
     }
+    public function resetpasswordotp(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'otp' => 'required',
+            'email' => 'required|email',
+            'password' => ['required', RulesPassword::defaults()],
+        ]);
+    $otpVal=$this->otp->validate($request->email,$request->otp);
+    if(!$otpVal->status){
 
+        return response()->json(['error'=> $otpVal], 200);
+    
+    }
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user) use ($request) {
+                $user->forceFill([
+                    'password' => Hash::make($request->password),
+                    'remember_token' => Str::random(60),
+                ])->save();
+
+                $user->tokens()->delete();
+
+                event(new PasswordReset($user));
+            }
+        );
+
+        if ($status == Password::PASSWORD_RESET) {
+            return response([
+                'message'=> 'Password reset successfully'
+            ]);
+        }
+
+        return response([
+            'message'=> __($status)
+        ], 500);
+
+    }
     public function forgetpasswordotp(Request $request){
        try{
         $request->validate([
             'email' => 'required|email|exists:users,email',
+            
         ]);
         $input=$request->only('email');
         $user=User::where('email',$input)->first();
@@ -81,7 +121,7 @@ class NewPasswordController extends Controller
         return response(['message'=> 'otp code send success', 'status'=>200]);
     }
     catch(Exception $e){
-        return response()->json(['error'=>$e], 200);
+        return response()->json(['error'=>$e ,'tt'=>55], 200);
     }
     }
 

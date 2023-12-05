@@ -108,7 +108,7 @@ class BooksController extends Controller
                 "status"=> Rule::in(['جديد', 'مستعمل بحاله جيد','مستعمل بحاله متوسط','فاقد بعض الورق','بحالة سئ']),
                 "price"=>"required|numeric",
                 "author"=>"string| max:70",
-                "addresse_id"=>"required|exists:Addresses,id",
+                "addresse_id"=>"required|exists:addresses,id",
                 "discription"=>"string |max:191",
                 "category"=> "required|array|exists:categories,id",
             ]
@@ -180,14 +180,17 @@ class BooksController extends Controller
             $user_id=auth('sanctum')->user()->id;
             $seller_id=$book->user_id;
             $rate = rating::where('user_id',$user_id)->where('seller_id',$seller_id)->first('rating');
-            
-            $avgrate = rating::where('seller_id',$id)->avg('rating');
+           // $avgrate = rating::where('seller_id',$request->user_id)->avg('rating');
+            $avgrate = rating::where('seller_id',$seller_id)->avg('rating');
             Log::info('print');
            $book['image']=$book->getallurl();
-            if($avgrate==null){
+            if($avgrate===null){
                 $avgrate='has no rate';
             }
-            if($rate==null){
+            else{
+                $avgrate= number_format($avgrate, 2);
+            }
+            if($rate===null){
                 $rate['rating']='not rate';
             }
            
